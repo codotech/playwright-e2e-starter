@@ -32,7 +32,7 @@ Dockerized SUT      Playwright runner
 6. Define projects, reporters, workers, retries, and trace policy in `e2e/playwright.config.ts`.
 7. Require the **E2E Gate** check before merging.
 
-There is no release tag yet, so the workflow currently follows the action's `main` branch. Replace it with `@v1` when the first major version is published.
+The workflow follows the latest compatible 0.x action through `@v0`. Use `@v0.2.0` when an exact release is required.
 
 ## What belongs where
 
@@ -131,7 +131,7 @@ The action runs Compose with build and wait enabled, always captures logs, and r
 
 ## Upgrade the action
 
-Review changes in the core repository, then update the major version in `.github/workflows/e2e.yml`. Before the first release the workflow follows `main`; after release, use a major reference such as `@v1`.
+Review changes in the core repository, then update the major version in `.github/workflows/e2e.yml`. The current line uses `@v0`; move it to `@v1` only when adopting a future 1.x release.
 
 ## License
 
