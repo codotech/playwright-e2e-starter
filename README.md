@@ -32,7 +32,7 @@ Dockerized SUT      Playwright runner
 6. Define projects, reporters, workers, retries, and trace policy in `e2e/playwright.config.ts`.
 7. Require the **E2E Gate** check before merging.
 
-The workflow is already pinned to an immutable commit of the action. There is no release tag yet. Update that full SHA only as an explicit framework upgrade.
+There is no release tag yet, so the workflow currently follows the action's `main` branch. Replace it with `@v1` when the first major version is published.
 
 ## What belongs where
 
@@ -131,7 +131,7 @@ The action runs Compose with build and wait enabled, always captures logs, and r
 
 ## Upgrade the action
 
-Review changes in the core repository, then replace the 40-character SHA in `.github/workflows/e2e.yml`. Keep immutable pins on public actions and do not replace the pin with a branch name.
+Review changes in the core repository, then update the major version in `.github/workflows/e2e.yml`. Before the first release the workflow follows `main`; after release, use a major reference such as `@v1`.
 
 ## License
 

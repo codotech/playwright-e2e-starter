@@ -52,7 +52,7 @@ jobs:
       - id: e2e
         name: Run E2E
         continue-on-error: true
-        uses: codotech/playwright-e2e@b541c26a39fca2d70e34109c59e6bc0764a54715
+        uses: codotech/playwright-e2e@main
         with:
           profile: >-
             ${{ github.event_name == 'pull_request' && 'pull-request' ||
@@ -65,7 +65,7 @@ jobs:
 
       - name: Update pull request
         if: always() && github.event_name == 'pull_request'
-        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
+        uses: actions/github-script@v8
         env:
           E2E_RESULT: ${{ steps.e2e.outputs.result }}
           E2E_PRIMARY_FAILURE: ${{ steps.e2e.outputs.primary-failure }}
