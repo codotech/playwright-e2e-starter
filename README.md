@@ -4,23 +4,7 @@ A ready-to-run repository template for testing a Dockerized system with [codotec
 
 The included echo service is intentionally small. It proves the complete path through Docker Compose, API and browser projects, Playwright tags, runner reuse, traces, reports, portable images, pull-request comments, and a required E2E gate.
 
-```text
-change opened
-     |
-repository workflow
-     |
-portable E2E action
-     |
-+----+-------------------+
-|                        |
-Dockerized SUT      Playwright runner
-|                        |
-+-----------+------------+
-            |
-     results + report
-            |
-        E2E Gate
-```
+![Starter flow from a change through repository workflow policy, the portable action, Dockerized SUT and Playwright runner, reports, and the required gate](docs/diagrams/starter-flow.svg)
 
 ## Create your repository
 
@@ -36,18 +20,7 @@ The workflow follows the latest compatible 0.x action through `@v0`. Use `@v0.2.
 
 ## What belongs where
 
-```text
-.
-+-- .github/workflows/e2e.yml   # repository triggers, permissions, PR comment, gate
-+-- compose.e2e.yml             # complete SUT topology for the test run
-+-- sut/                        # replace with your service or images
-+-- e2e/
-    +-- ci.yml                  # profiles, projects, tags, SUT URL, retention
-    +-- Dockerfile              # immutable Playwright runner
-    +-- runner-entrypoint.mjs   # runner argument and output contract
-    +-- playwright.config.ts    # Playwright behavior and projects
-    +-- tests/                  # your E2E suites
-```
+![Starter repository layout showing workflow policy, Compose topology, replaceable services, and the stable E2E directory contract](docs/diagrams/repository-layout.svg)
 
 The application repository owns the workflow policy and SUT topology. The external action owns the execution engine. Tests and their dependencies stay in `e2e/`, so any material runner change produces a new content hash and runner image. Service-only or profile-only changes reuse the validated runner while still rebuilding and testing the SUT.
 
