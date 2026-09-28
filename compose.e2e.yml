@@ -1,0 +1,15 @@
+services:
+  sut:
+    build:
+      context: ./sut
+      dockerfile: Dockerfile
+    init: true
+    ports:
+      - "4173:4173"
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true

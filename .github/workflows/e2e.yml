@@ -1,0 +1,146 @@
+name: E2E
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      profile:
+        description: Execution profile from e2e/ci.yml.
+        required: true
+        default: regression
+        type: string
+      projects:
+        description: Optional project override, one per line.
+        required: false
+        default: ""
+        type: string
+      labels:
+        description: Optional tag override, one per line.
+        required: false
+        default: ""
+        type: string
+      label-match:
+        description: Optional tag matching override.
+        required: false
+        default: profile
+        type: choice
+        options:
+          - profile
+          - all
+          - any
+
+permissions:
+  contents: read
+  pull-requests: write
+
+concurrency:
+  group: e2e-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  e2e:
+    name: E2E Gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+
+      - id: e2e
+        name: Run E2E
+        continue-on-error: true
+        uses: codotech/playwright-e2e@d6547a91e259d285caa23a626fd207ac6747ef24
+        with:
+          profile: >-
+            ${{ github.event_name == 'pull_request' && 'pull-request' ||
+            github.event_name == 'push' && 'main' || inputs.profile }}
+          projects: ${{ github.event_name == 'workflow_dispatch' && inputs.projects || '' }}
+          labels: ${{ github.event_name == 'workflow_dispatch' && inputs.labels || '' }}
+          label-match: >-
+            ${{ github.event_name == 'workflow_dispatch' && inputs.label-match != 'profile' &&
+            inputs.label-match || '' }}
+
+      - name: Update pull request
+        if: always() && github.event_name == 'pull_request'
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
+        env:
+          E2E_RESULT: ${{ steps.e2e.outputs.result }}
+          E2E_PRIMARY_FAILURE: ${{ steps.e2e.outputs.primary-failure }}
+          E2E_TOTAL: ${{ steps.e2e.outputs.total }}
+          E2E_PASSED: ${{ steps.e2e.outputs.passed }}
+          E2E_FAILED: ${{ steps.e2e.outputs.failed }}
+          E2E_SKIPPED: ${{ steps.e2e.outputs.skipped }}
+          E2E_PROFILE: ${{ steps.e2e.outputs.profile }}
+          E2E_PROJECTS: ${{ steps.e2e.outputs.projects }}
+          E2E_LABELS: ${{ steps.e2e.outputs.labels }}
+          E2E_LABEL_MATCH: ${{ steps.e2e.outputs.label-match }}
+          E2E_RUNNER_CACHE_HIT: ${{ steps.e2e.outputs.runner-cache-hit }}
+          E2E_RUNNER_IMAGE: ${{ steps.e2e.outputs.runner-image-name }}
+          E2E_RESULTS_ARTIFACT: ${{ steps.e2e.outputs.results-artifact }}
+          E2E_REPORT_IMAGE: ${{ steps.e2e.outputs.report-image-name }}
+          E2E_REPORT_ARTIFACT: ${{ steps.e2e.outputs.report-image-artifact }}
+        with:
+          script: |
+            const marker = '<!-- playwright-e2e-report -->';
+            const value = (name, fallback = 'n/a') => process.env[name] || fallback;
+            const list = (name) => value(name).split('\n').filter(Boolean).join(', ');
+            const result = value('E2E_RESULT', 'infrastructure-error');
+            const icon = result === 'passed' ? '✅' : result === 'failed' ? '❌' : '⚠️';
+            const cache = value('E2E_RUNNER_CACHE_HIT', 'false') === 'true' ? 'reused' : 'built';
+            const runUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+            const rows = [
+              ['Gate', `${icon} ${result}`],
+              ['Tests', `${value('E2E_PASSED', '0')} passed · ${value('E2E_FAILED', '0')} failed · ${value('E2E_SKIPPED', '0')} skipped · ${value('E2E_TOTAL', '0')} total`],
+              ['Profile', value('E2E_PROFILE')],
+              ['Projects', list('E2E_PROJECTS')],
+              ['Tags', `${list('E2E_LABELS')} (${value('E2E_LABEL_MATCH')})`],
+              ['Runner', `${value('E2E_RUNNER_IMAGE')} (${cache})`],
+              ['Results', value('E2E_RESULTS_ARTIFACT')],
+              ['Report image', `${value('E2E_REPORT_IMAGE')} · ${value('E2E_REPORT_ARTIFACT')}`],
+              ['Run', `[Open workflow run](${runUrl})`],
+            ];
+            const failure = process.env.E2E_PRIMARY_FAILURE
+              ? `\n> ${process.env.E2E_PRIMARY_FAILURE}\n`
+              : '';
+            const body = [
+              marker,
+              '## E2E test report',
+              '',
+              '| | |',
+              '|---|---|',
+              ...rows.map(([name, detail]) => `| ${name} | ${detail} |`),
+              failure,
+            ].join('\n');
+            const comments = await github.paginate(github.rest.issues.listComments, {
+              ...context.repo,
+              issue_number: context.issue.number,
+              per_page: 100,
+            });
+            const previous = comments.find((comment) =>
+              comment.user?.type === 'Bot' && comment.body?.includes(marker));
+            if (previous) {
+              await github.rest.issues.updateComment({
+                ...context.repo,
+                comment_id: previous.id,
+                body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                ...context.repo,
+                issue_number: context.issue.number,
+                body,
+              });
+            }
+
+      - name: Preserve E2E result
+        if: always()
+        shell: bash
+        env:
+          E2E_STEP_OUTCOME: ${{ steps.e2e.outcome }}
+        run: |
+          if [[ "$E2E_STEP_OUTCOME" != "success" ]]; then
+            exit 1
+          fi

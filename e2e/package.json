@@ -1,0 +1,26 @@
+{
+  "name": "@codotech/playwright-e2e-starter",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Starter E2E suite for the codotech/playwright-e2e action",
+  "type": "module",
+  "packageManager": "pnpm@10.26.2",
+  "engines": {
+    "node": ">=22",
+    "pnpm": ">=10"
+  },
+  "scripts": {
+    "check": "pnpm run test:static && pnpm run test",
+    "install:browsers": "playwright install --with-deps chromium",
+    "test": "playwright test",
+    "test:ci": "CI=true playwright test",
+    "test:debug": "playwright test --debug",
+    "test:static": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.61.1",
+    "@types/node": "26.1.0",
+    "playwright-ctrf-json-reporter": "0.0.29",
+    "typescript": "6.0.3"
+  }
+}

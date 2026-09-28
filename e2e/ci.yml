@@ -1,0 +1,39 @@
+version: 1
+
+runner:
+  dockerfile: Dockerfile
+
+playwright:
+  config: playwright.config.ts
+
+sut:
+  composeFile: compose.e2e.yml
+  baseUrl: http://127.0.0.1:4173
+
+execution:
+  shards: 1
+  artifactRetentionDays: 10
+
+profiles:
+  pull-request:
+    projects:
+      - api
+      - chromium
+    labels:
+      - "@smoke"
+    labelMatch: any
+
+  main:
+    projects:
+      - api
+      - chromium
+    labels: []
+    labelMatch: all
+
+  regression:
+    projects:
+      - api
+      - chromium
+    labels:
+      - "@regression"
+    labelMatch: any
