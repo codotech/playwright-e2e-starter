@@ -52,7 +52,7 @@ jobs:
       - id: e2e
         name: Run E2E
         continue-on-error: true
-        uses: codotech/playwright-e2e@7a9a37c5ead24434a15d7c4682ce488e8a4a9eb4
+        uses: codotech/playwright-e2e@b541c26a39fca2d70e34109c59e6bc0764a54715
         with:
           profile: >-
             ${{ github.event_name == 'pull_request' && 'pull-request' ||
