@@ -47,12 +47,12 @@ jobs:
     timeout-minutes: 45
     steps:
       - name: Check out repository
-        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - id: e2e
         name: Run E2E
         continue-on-error: true
-        uses: codotech/playwright-e2e@d6547a91e259d285caa23a626fd207ac6747ef24
+        uses: codotech/playwright-e2e@7a9a37c5ead24434a15d7c4682ce488e8a4a9eb4
         with:
           profile: >-
             ${{ github.event_name == 'pull_request' && 'pull-request' ||
