@@ -63,8 +63,8 @@ jobs:
         name: Run E2E
         if: steps.sut.outcome == 'success'
         continue-on-error: true
-        # URL-only contract, pinned until a compatible release is available.
-        uses: codotech/playwright-e2e@2c01fc684d6153783c3df98b4a48502521fdb32b
+        # Requires a v0 release containing the URL-only contract.
+        uses: codotech/playwright-e2e@v0
         with:
           profile: >-
             ${{ github.event_name == 'pull_request' && 'pull-request' ||

@@ -16,7 +16,7 @@ The included echo service is intentionally small. The caller workflow manages Do
 6. Define projects, reporters, workers, retries, and trace policy in `e2e/playwright.config.ts`.
 7. Require the **E2E Gate** check before merging.
 
-The workflow pins the URL-only action implementation commit while a compatible release is pending. `v0.2.0` requires action-managed Compose and is not compatible with this recipe. Review the exact action reference in [.github/workflows/e2e.yml](.github/workflows/e2e.yml).
+The workflow uses the major-version tag `codotech/playwright-e2e@v0`, not a commit SHA. This recipe requires a release containing the URL-only contract. Currently `v0` points to `v0.2.0`, which still requires action-managed Compose, so this starter change must wait for the compatible release. See [.github/workflows/e2e.yml](.github/workflows/e2e.yml).
 
 ## What belongs where
 
@@ -153,7 +153,7 @@ The supplied workflow runs Compose with build and wait enabled, collects logs, a
 
 ## Upgrade the action
 
-Review changes in the core repository, then update the pinned commit in `.github/workflows/e2e.yml`. Once a release includes the URL-only contract, you can adopt that release instead. Do not revert to `@v0.2.0` or another release that expects action-managed Compose.
+Use major-version tags in `.github/workflows/e2e.yml`, such as `@v0` or `@v1`, rather than commit SHAs or feature branches. Review breaking changes before changing the major version. Ensure the selected release line includes the URL-only contract before merging this recipe.
 
 ## License
 
