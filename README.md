@@ -1,6 +1,6 @@
 # Playwright E2E Starter
 
-A ready-to-run repository template for testing a Dockerized system with [codotech/playwright-e2e](https://github.com/codotech/playwright-e2e).
+A ready-to-run repository template for testing a Docker Compose or externally managed system with [codotech/playwright-e2e](https://github.com/codotech/playwright-e2e).
 
 The included echo service is intentionally small. It proves the complete path through Docker Compose, API and browser projects, Playwright tags, runner reuse, traces, reports, portable images, pull-request comments, and a required E2E gate.
 
@@ -9,8 +9,8 @@ The included echo service is intentionally small. It proves the complete path th
 ## Create your repository
 
 1. Select **Use this template** on GitHub.
-2. Keep the `e2e/` directory name and the root `compose.e2e.yml` contract.
-3. Replace `sut/` and `compose.e2e.yml` with the services your tests need.
+2. Keep the `e2e/` directory name.
+3. Replace `sut/` and `compose.e2e.yml` with the services your tests need, or follow the existing-environment recipe below.
 4. Set the SUT URL and execution profiles in `e2e/ci.yml`.
 5. Replace the example tests under `e2e/tests/`.
 6. Define projects, reporters, workers, retries, and trace policy in `e2e/playwright.config.ts`.
@@ -66,6 +66,29 @@ Always run the final cleanup command, including after a failed test. Run the sta
 ```bash
 pnpm --dir e2e test:static
 ```
+
+### Target an existing environment
+
+This recipe requires the action's optional-Compose change, which is not in `v0.2.0`. Update the action reference to a release or commit containing that change before using it.
+
+Replace the `sut` section in `e2e/ci.yml` with:
+
+```yaml
+sut:
+  baseUrl: https://staging.example.com
+```
+
+Omit `composeFile` entirely. The example `sut/` directory and root Compose file are not needed in this mode. Keep the runner Dockerfile, entrypoint, Playwright configuration, reporters, and workflow result handling.
+
+After installing the E2E dependencies, run locally with:
+
+```bash
+BASE_URL=https://staging.example.com pnpm --dir e2e test
+```
+
+CI passes the same configured URL into the test container. It does not start, collect service logs from, or tear down the target. Docker is still used for the runner and report images. The target must already be reachable and ready. Tests can modify data, so select an authorized test environment.
+
+Do not put credentials in the URL. Arbitrary workflow environment variables, including API tokens, are not currently forwarded into the test container.
 
 ## CI behavior
 
