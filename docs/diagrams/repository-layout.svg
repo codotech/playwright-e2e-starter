@@ -1,6 +1,6 @@
 <svg width="1200" height="590" viewBox="0 0 1200 590" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title description">
   <title id="title">Starter repository layout</title>
-  <desc id="description">The starter contains repository workflow policy, a root Compose topology, replaceable system services, and an e2e directory containing configuration, runner files, and tests.</desc>
+  <desc id="description">The starter contains repository workflow policy and an e2e directory with configuration, runner files, and tests. The compose.e2e.yml file and sut directory are optional local-system examples, not action requirements. An existing remote target needs neither.</desc>
   <defs>
     <pattern id="grid" width="50" height="50" patternUnits="userSpaceOnUse">
       <path d="M 50 0 L 0 0 0 50" fill="none" stroke="#353535" stroke-width="1"/>
@@ -26,7 +26,7 @@
   <rect x="1" y="1" width="1198" height="588" rx="24" fill="url(#grid)" opacity="0.72"/>
 
   <text x="50" y="53" class="heading">STARTER REPOSITORY LAYOUT</text>
-  <text x="50" y="80" class="subtitle">Four replaceable areas, one stable E2E contract</text>
+  <text x="50" y="80" class="subtitle">Workflow policy and E2E files, plus optional local-system examples</text>
 
   <g filter="url(#shadow)">
     <rect x="425" y="108" width="350" height="68" rx="16" fill="#22332F" stroke="#28F89A" stroke-width="2"/>
@@ -35,9 +35,9 @@
   </g>
 
   <path d="M600 176 V218 H150 V246" class="connector"/>
-  <path d="M600 176 V218 H436 V246" class="connector"/>
-  <path d="M600 176 V218 H722 V246" class="connector"/>
-  <path d="M600 176 V218 H1010 V246" class="connector"/>
+  <path d="M600 176 V218 H398 V246" class="connector"/>
+  <path d="M600 176 V218 H646 V246" class="connector"/>
+  <path d="M600 176 V218 H972 V246" class="connector"/>
 
   <g filter="url(#shadow)">
     <rect x="38" y="248" width="224" height="188" rx="16" fill="#333333" stroke="#424242" stroke-width="1.5"/>
@@ -52,22 +52,22 @@
 
   <g filter="url(#shadow)">
     <rect x="286" y="248" width="224" height="188" rx="16" fill="#333333" stroke="#424242" stroke-width="1.5"/>
-    <rect x="306" y="268" width="88" height="22" rx="11" fill="#28F89A"/>
-    <text x="320" y="283" class="type">TOPOLOGY</text>
+    <rect x="306" y="268" width="170" height="22" rx="11" fill="#28F89A"/>
+    <text x="320" y="283" class="type">OPTIONAL EXAMPLE</text>
     <text x="306" y="324" class="label">Compose</text>
     <rect x="306" y="344" width="184" height="52" rx="9" fill="#424242"/>
     <text x="322" y="375" class="file">compose.e2e.yml</text>
-    <text x="306" y="418" class="detail">workflow-owned example</text>
+    <text x="306" y="418" class="detail">omit for a remote target</text>
   </g>
 
   <g filter="url(#shadow)">
     <rect x="534" y="248" width="224" height="188" rx="16" fill="#333333" stroke="#424242" stroke-width="1.5"/>
-    <rect x="554" y="268" width="60" height="22" rx="11" fill="#28F89A"/>
-    <text x="568" y="283" class="type">SUT</text>
+    <rect x="554" y="268" width="170" height="22" rx="11" fill="#28F89A"/>
+    <text x="568" y="283" class="type">OPTIONAL EXAMPLE</text>
     <text x="554" y="324" class="label">Services</text>
     <rect x="554" y="344" width="184" height="52" rx="9" fill="#424242"/>
     <text x="570" y="375" class="file">sut/</text>
-    <text x="554" y="418" class="detail">replace with your system</text>
+    <text x="554" y="418" class="detail">omit for a remote target</text>
   </g>
 
   <g filter="url(#shadow)">
@@ -91,5 +91,5 @@
     <text x="818" y="497" class="detail">replace examples with your suites</text>
   </g>
 
-  <text x="50" y="559" class="subtitle">Keep the paths stable; replace the example implementation behind them.</text>
+  <text x="50" y="559" class="subtitle">The action consumes e2e/; Compose and sut/ are optional starter examples, not action requirements.</text>
 </svg>

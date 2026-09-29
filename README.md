@@ -4,7 +4,7 @@ A repository template that starts its own application and tests its base URL wit
 
 The included echo service is intentionally small. The caller workflow manages Docker Compose startup, readiness, service logs, and cleanup. The action only owns Playwright execution, reports, and portable images. You can also target an existing environment without starting any services.
 
-![Starter flow from a change through repository workflow policy, the portable action, Dockerized SUT and Playwright runner, reports, and the required gate](docs/diagrams/starter-flow.svg)
+![Caller-started system or existing remote environment provides a ready base URL to codotech/playwright-e2e@v0, which runs tests and produces reports for the caller's E2E gate](docs/diagrams/starter-flow.svg)
 
 ## Create your repository
 
@@ -20,7 +20,7 @@ The workflow uses the major-version tag `codotech/playwright-e2e@v0`, not a comm
 
 ## What belongs where
 
-![Starter repository layout showing workflow policy, Compose topology, replaceable services, and the stable E2E directory contract](docs/diagrams/repository-layout.svg)
+![Starter repository layout showing workflow policy and the E2E directory, with Compose and service files marked as optional examples that remote targets do not need](docs/diagrams/repository-layout.svg)
 
 The application repository owns workflow policy, SUT topology, readiness, and cleanup. The external action owns the test execution engine and accepts only the application's URL. Tests and their dependencies stay in `e2e/`, so any material runner change produces a new content hash and runner image. Service-only or profile-only changes reuse the validated runner while the caller independently manages the application.
 
