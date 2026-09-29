@@ -45,13 +45,25 @@ jobs:
     name: E2E Gate
     runs-on: ubuntu-latest
     timeout-minutes: 45
+    env:
+      COMPOSE_PROJECT_NAME: e2e-${{ github.run_id }}-${{ github.run_attempt }}
     steps:
       - name: Check out repository
         uses: actions/checkout@v7
 
+      - id: sut
+        name: Start example SUT and wait for readiness
+        continue-on-error: true
+        shell: bash
+        run: |
+          mkdir -p sut-logs
+          docker compose -f compose.e2e.yml up --detach --build --wait 2>&1 | tee sut-logs/startup.log
+
       - id: e2e
         name: Run E2E
+        if: steps.sut.outcome == 'success'
         continue-on-error: true
+        # Requires a v0 release containing the URL-only contract.
         uses: codotech/playwright-e2e@v0
         with:
           profile: >-
@@ -63,11 +75,44 @@ jobs:
             ${{ github.event_name == 'workflow_dispatch' && inputs.label-match != 'profile' &&
             inputs.label-match || '' }}
 
+      - id: sut-logs
+        name: Capture example SUT logs
+        if: always() && steps.sut.outcome != 'skipped'
+        continue-on-error: true
+        shell: bash
+        run: |
+          mkdir -p sut-logs
+          docker compose -f compose.e2e.yml logs --no-color --timestamps > sut-logs/services.log 2>&1
+
+      - id: sut-cleanup
+        name: Stop example SUT
+        if: always() && steps.sut.outcome != 'skipped'
+        continue-on-error: true
+        shell: bash
+        run: |
+          mkdir -p sut-logs
+          docker compose -f compose.e2e.yml down --volumes --remove-orphans > sut-logs/teardown.log 2>&1
+
+      - id: sut-artifact
+        name: Upload example SUT logs
+        if: always() && steps.sut.outcome != 'skipped'
+        continue-on-error: true
+        uses: actions/upload-artifact@v7
+        with:
+          name: sut-logs
+          path: sut-logs/
+          if-no-files-found: error
+          retention-days: 10
+
       - name: Update pull request
         if: always() && github.event_name == 'pull_request'
         uses: actions/github-script@v8
         env:
           E2E_RESULT: ${{ steps.e2e.outputs.result }}
+          E2E_SUT_SETUP: ${{ steps.sut.outcome }}
+          E2E_SUT_CLEANUP: ${{ steps.sut-cleanup.outcome }}
+          E2E_SUT_LOGS: ${{ steps.sut-logs.outcome }}
+          E2E_SUT_ARTIFACT: ${{ steps.sut-artifact.outcome }}
           E2E_PRIMARY_FAILURE: ${{ steps.e2e.outputs.primary-failure }}
           E2E_TOTAL: ${{ steps.e2e.outputs.total }}
           E2E_PASSED: ${{ steps.e2e.outputs.passed }}
@@ -87,12 +132,18 @@ jobs:
             const marker = '<!-- playwright-e2e-report -->';
             const value = (name, fallback = 'n/a') => process.env[name] || fallback;
             const list = (name) => value(name).split('\n').filter(Boolean).join(', ');
-            const result = value('E2E_RESULT', 'infrastructure-error');
+            const actionResult = value('E2E_RESULT', 'infrastructure-error');
+            const lifecycleFailures = ['E2E_SUT_SETUP', 'E2E_SUT_CLEANUP', 'E2E_SUT_LOGS', 'E2E_SUT_ARTIFACT']
+              .filter((name) => value(name) !== 'success');
+            const result = actionResult === 'failed'
+              ? 'failed'
+              : lifecycleFailures.length ? 'infrastructure-error' : actionResult;
             const icon = result === 'passed' ? '✅' : result === 'failed' ? '❌' : '⚠️';
             const cache = value('E2E_RUNNER_CACHE_HIT', 'false') === 'true' ? 'reused' : 'built';
             const runUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
             const rows = [
               ['Gate', `${icon} ${result}`],
+              ['Caller SUT', `setup: ${value('E2E_SUT_SETUP')} · cleanup: ${value('E2E_SUT_CLEANUP')} · artifact: sut-logs`],
               ['Tests', `${value('E2E_PASSED', '0')} passed · ${value('E2E_FAILED', '0')} failed · ${value('E2E_SKIPPED', '0')} skipped · ${value('E2E_TOTAL', '0')} total`],
               ['Profile', value('E2E_PROFILE')],
               ['Projects', list('E2E_PROJECTS')],
@@ -102,8 +153,10 @@ jobs:
               ['Report image', `${value('E2E_REPORT_IMAGE')} · ${value('E2E_REPORT_ARTIFACT')}`],
               ['Run', `[Open workflow run](${runUrl})`],
             ];
-            const failure = process.env.E2E_PRIMARY_FAILURE
-              ? `\n> ${process.env.E2E_PRIMARY_FAILURE}\n`
+            const failureMessage = process.env.E2E_PRIMARY_FAILURE ||
+              (lifecycleFailures.length ? `Caller lifecycle did not succeed: ${lifecycleFailures.join(', ')}` : '');
+            const failure = failureMessage
+              ? `\n> ${failureMessage}\n`
               : '';
             const body = [
               marker,
@@ -140,7 +193,13 @@ jobs:
         shell: bash
         env:
           E2E_STEP_OUTCOME: ${{ steps.e2e.outcome }}
+          SUT_SETUP_OUTCOME: ${{ steps.sut.outcome }}
+          SUT_LOGS_OUTCOME: ${{ steps.sut-logs.outcome }}
+          SUT_CLEANUP_OUTCOME: ${{ steps.sut-cleanup.outcome }}
+          SUT_ARTIFACT_OUTCOME: ${{ steps.sut-artifact.outcome }}
         run: |
-          if [[ "$E2E_STEP_OUTCOME" != "success" ]]; then
-            exit 1
-          fi
+          for outcome in "$E2E_STEP_OUTCOME" "$SUT_SETUP_OUTCOME" "$SUT_LOGS_OUTCOME" "$SUT_CLEANUP_OUTCOME" "$SUT_ARTIFACT_OUTCOME"; do
+            if [[ "$outcome" != "success" ]]; then
+              exit 1
+            fi
+          done
