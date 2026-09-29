@@ -7,7 +7,6 @@ playwright:
   config: playwright.config.ts
 
 sut:
-  composeFile: compose.e2e.yml
   baseUrl: http://127.0.0.1:4173
 
 execution:

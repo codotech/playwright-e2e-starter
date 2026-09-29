@@ -47,7 +47,7 @@
     <rect x="58" y="344" width="184" height="52" rx="9" fill="#424242"/>
     <text x="74" y="366" class="file">.github/workflows/</text>
     <text x="74" y="384" class="file">e2e.yml</text>
-    <text x="58" y="418" class="detail">triggers · comment · gate</text>
+    <text x="58" y="418" class="detail">lifecycle · comment · gate</text>
   </g>
 
   <g filter="url(#shadow)">
@@ -57,7 +57,7 @@
     <text x="306" y="324" class="label">Compose</text>
     <rect x="306" y="344" width="184" height="52" rx="9" fill="#424242"/>
     <text x="322" y="375" class="file">compose.e2e.yml</text>
-    <text x="306" y="418" class="detail">build · health · network</text>
+    <text x="306" y="418" class="detail">workflow-owned example</text>
   </g>
 
   <g filter="url(#shadow)">
